@@ -1,0 +1,3 @@
+[submodule "amplifier-smart-tools"]
+	path = amplifier-smart-tools
+	url = https://github.com/microsoft/amplifier-smart-tools.git
