@@ -28,6 +28,8 @@ mybench inspire-me
 mybench inspire-me --guidance "tasks about reading long legal documents"
 ```
 
+Prints the ideas, one per line; any of them can be passed to `mybench create --idea` as is.
+
 ## mybench create
 
 ```bash
@@ -37,7 +39,8 @@ mybench create --context "<file, url, or text>"
 mybench create --idea "<idea>" --context "<file, url, or text>"
 ```
 
-Prints the path of the task written to disk.
+`--context` takes a path to a local file, a URL, or literal text. 
+Prints the path of the task written to disk, then the model's closing message.
 
 ## mybench try
 

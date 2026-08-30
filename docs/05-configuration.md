@@ -11,7 +11,7 @@ It describes the benchmark itself, never the machine, and never contains credent
 models:
   - anthropic/claude-sonnet-5
   - sglang/qwen3.8-27b
-grading_model: claude-sonnet-4.5
+grading_model: gpt-5.6-terra
 providers:
   sglang:
     base_url: http://192.168.0.20:30000/v1
@@ -21,7 +21,8 @@ providers:
 ```
 
 - `models`: the models under test, as `<provider>/<model>` in the harness's naming. [Run](02-library.md#run) executes these over the tasks on disk, and the exact string is recorded in every [task run record](04-results-format.md#task-run-record).
-- `grading_model`: the model `judge` evaluations grade with, separate from the models under test and recorded in the [score record](04-results-format.md#score-records). A model id from the GitHub Copilot catalog, not `<provider>/<model>`. Optional when no task has a `judge` evaluation.
+- `grading_model`: the model `judge` evaluations grade with, separate from the models under test and recorded in the [score record](04-results-format.md#score-records). A model id from the GitHub Copilot catalog, not `<provider>/<model>`. Defaults to `gpt-5.6-terra`.
+- `smart_model`: the model [Inspire](02-library.md#inspire) and [Create](02-library.md#create) author with, also a GitHub Copilot catalog id. Defaults to `gpt-5.6-terra`. Grading and authoring sessions both run at medium reasoning effort.
 - `providers`: providers the harness does not know natively, keyed by the provider segment of the model strings that use them. Providers the harness knows, like `anthropic` and `openai`, need no declaration. `npm` names the harness provider SDK package and defaults to the OpenAI-compatible one, so a local or self-hosted endpoint needs only `base_url`. `api_key_env` names the environment variable holding the endpoint's key, and is omitted for keyless endpoints. `options` and `model_params` merge verbatim into the harness's provider and model configuration, so any harness parameter is expressible without a schema change.
 
 ## User Settings

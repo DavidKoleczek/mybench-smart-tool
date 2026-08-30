@@ -1,7 +1,7 @@
 """What an intelligence implementation is asked to do, and what it answers with."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -30,9 +30,11 @@ class AgentRequest(BaseModel):
     workspace: Workspace | None = Field(
         default=None, description="Where the agent may read and run things; None means a plain completion, no tools"
     )
+    writable: bool = Field(default=False, description="Whether the agent may create and modify files in the workspace")
     output_schema: dict[str, Any] | None = Field(
         default=None, description="JSON schema the structured output must satisfy"
     )
+    reasoning_effort: Literal["low", "medium", "high", "xhigh", "max"] = "medium"
     timeout_seconds: int = Field(gt=0)
 
 

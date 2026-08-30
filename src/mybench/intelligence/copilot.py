@@ -76,6 +76,7 @@ class CopilotIntelligence:
 
         session_options: dict[str, Any] = {
             "model": request.model,
+            "reasoning_effort": request.reasoning_effort,
             "on_permission_request": PermissionHandler.approve_all,
             "skip_custom_instructions": True,
             "available_tools": [],
@@ -83,6 +84,10 @@ class CopilotIntelligence:
         if request.workspace is not None:
             session_options["working_directory"] = str(request.workspace.path)
             session_options["available_tools"] = ["view", "grep", "bash"]
+            if request.writable:
+                # bash in a HostWorkspace is not sandboxed to it; the caller's prompt bounds
+                # the agent and the caller validates before anything the agent wrote is kept.
+                session_options["available_tools"] = [*session_options["available_tools"], "edit", "write"]
         if request.output_schema is not None:
             session_options["tools"] = [
                 Tool(

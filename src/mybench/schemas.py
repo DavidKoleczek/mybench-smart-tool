@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field, model_validator
 
 RESULTS_FORMAT_VERSION = 1
 
+DEFAULT_INTELLIGENCE_MODEL = "gpt-5.6-terra"
+
 SEMVER_PATTERN = r"^\d+\.\d+\.\d+$"
 SLUG_PATTERN = r"^[a-z0-9]+(-[a-z0-9]+)*$"
 
@@ -74,6 +76,14 @@ class Task(BaseModel):
         return self
 
 
+class CreatedTask(BaseModel):
+    """A task Create wrote to disk, with the authoring model's closing message."""
+
+    task: Task
+    path: Path
+    message: str = Field(description="The authoring model's final message, for adjusting the input and creating again")
+
+
 # endregion
 
 
@@ -105,7 +115,8 @@ class BenchmarkConfig(BaseModel):
 
     models: list[str] = Field(default_factory=list)
     providers: dict[str, ProviderConfig] = Field(default_factory=dict)
-    grading_model: str | None = None
+    grading_model: str = Field(default=DEFAULT_INTELLIGENCE_MODEL, description="The model judge evaluations grade with")
+    smart_model: str = Field(default=DEFAULT_INTELLIGENCE_MODEL, description="The model Inspire and Create author with")
 
 
 type TaskRunStatus = Literal["success", "error", "timeout"]

@@ -36,10 +36,11 @@ def inspire(guidance: str | None = None) -> list[str]
 ## Create
 
 Creates a new task in the benchmark from an idea, context material, or both. At least one must be provided.
-Writes the task to disk in the [task format](03-task-format.md) and returns it.
+`context` is a path to a local file, a URL, or literal text.
+Writes the task to disk in the [task format](03-task-format.md) and returns it along with the model's closing message, so the input can be adjusted and Create called again.
 
 ```python
-def create_task(idea: str | None = None, context: str | None = None) -> Task
+def create_task(idea: str | None = None, context: str | None = None) -> CreatedTask
 ```
 
 ## Try
@@ -133,4 +134,5 @@ and the returned results say which is which. A failed [Try](#try) is recorded th
 
 `Task` and `TaskResult` mirror the on-disk [task](03-task-format.md) and [results](04-results-format.md) formats. 
 `Task` adds `id`, the task's directory name. 
-`TaskResult` adds `path`, the run directory on disk, so a consumer can reach the workspace and artifacts.
+`TaskResult` adds `path`, the run directory on disk, so a consumer can reach the workspace and artifacts. 
+`CreatedTask` pairs the written `Task` with its `path` and the authoring model's closing `message`.

@@ -160,10 +160,6 @@ def grading_setup(task: Task, config: BenchmarkConfig) -> tuple[Intelligence, st
     """
     if not any(isinstance(evaluation, JudgeEvaluation) for evaluation in task.evaluations):
         return None, None
-    if config.grading_model is None:
-        raise MyBenchError(
-            f"Task '{task.id}' has judge evaluations but config.yaml sets no grading_model. Add one to grade with."
-        )
     intelligence = default_intelligence()
     intelligence.preflight()
     return intelligence, config.grading_model

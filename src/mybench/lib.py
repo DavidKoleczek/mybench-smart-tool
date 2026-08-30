@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from mybench.core import execute, init, results, run, sync
-from mybench.schemas import Task, TaskResult
+from mybench.core import authoring, execute, init, results, run, sync
+from mybench.schemas import CreatedTask, TaskResult
 
 
 def init_benchmark(target: str, path: Path | None = None) -> None:
@@ -18,11 +18,26 @@ def init_benchmark(target: str, path: Path | None = None) -> None:
 
 
 def inspire(guidance: str | None = None) -> list[str]:
-    return []
+    """Propose ideas for new tasks, each ready to pass to `create_task` as is.
+
+    Args:
+        guidance: Optional steering for what the ideas should be about.
+    """
+    return authoring.inspire(guidance)
 
 
-def create_task(idea: str | None = None, context: str | None = None) -> Task:
-    return Task(id="example-task", name="Example Task", timeout_seconds=900)
+def create_task(idea: str | None = None, context: str | None = None) -> CreatedTask:
+    """Create a new task in the benchmark from an idea, context material, or both.
+
+    The task is written to disk in the task format.
+    The returned `CreatedTask` carries the task, where it was written,
+    and the model's closing message, so the input can be adjusted and the call made again.
+
+    Args:
+        idea: What the task should be.
+        context: Material to build from: a path to a local file, a URL, or literal text.
+    """
+    return authoring.create_task(idea, context)
 
 
 def try_task(

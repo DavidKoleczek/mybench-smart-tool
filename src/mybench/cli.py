@@ -31,6 +31,29 @@ def init(
         typer.echo(f"Benchmark at {settings.benchmark_path}")
 
 
+@app.command(name="inspire-me")
+def inspire_me(
+    guidance: Annotated[str | None, typer.Option(help="Steer what the ideas are about")] = None,
+) -> None:
+    """Propose ideas for new tasks."""
+    for idea in lib.inspire(guidance):
+        typer.echo(f"- {idea}")
+
+
+@app.command()
+def create(
+    idea: Annotated[str | None, typer.Option(help="What the task should be")] = None,
+    context: Annotated[str | None, typer.Option(help="Material to build from: a file path, URL, or text")] = None,
+) -> None:
+    """Create a new task in the benchmark from an idea, context material, or both."""
+    if idea is None and context is None:
+        raise typer.BadParameter("Give --idea, --context, or both.")
+    created = lib.create_task(idea, context)
+    typer.echo(f"Task at {created.path}")
+    if created.message:
+        typer.echo(created.message)
+
+
 @app.command(name="try")
 def try_(
     task: Annotated[str, typer.Argument(help="A task id in the benchmark, or a path to a task directory")],
