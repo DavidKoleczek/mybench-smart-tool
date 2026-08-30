@@ -29,22 +29,31 @@ uvx --from git+https://github.com/DavidKoleczek/mybench-smart-tool mybench --hel
 ## Interface
 
 ```bash
+# Create a new benchmark: a git repo of your tasks, results, and config
+mybench init
+
 # Proposes ideas for tasks
-mybench inspire-me --guidance "guidance"
+mybench inspire-me --guidance "<guidance>"
 
 # Create a new task in your benchmark. You can provide an idea, context, or both
-mybench create --idea "<pick one>" --context "<pick one"
+mybench create --idea "<idea>" --context "<context>"
 
-# Runs your benchmark
-mybench run --model
+# Runs your benchmark. Without flags, runs whatever has no result yet
+mybench run --model "<model>" --task "<task>"
+
+# Push your benchmark to its remote, or pull down updates
+mybench push
+mybench pull
 
 # Opens a UX where you can see historical benchmark results
 mybench dashboard
 ```
 
+See the [CLI reference](docs/06-cli.md) for every flag.
+
 ## Configuration
 
-TBD
+See [Configuration](docs/05-configuration.md) for the config file, user settings, and environment variables.
 
 ## Contributing
 
