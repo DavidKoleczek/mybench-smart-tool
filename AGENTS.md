@@ -90,4 +90,8 @@ The repos that we have exemplars are (add to the list as we get more, the one ex
 - https://github.com/astral-sh/uv
 - https://github.com/astral-sh/ruff
 - https://github.com/fastapi/typer
+- https://github.com/prettier/prettier
+- https://github.com/prettier/prettier-vscode
+- https://github.com/prettier/eslint-config-prettier
+- https://github.com/tailwindlabs/prettier-plugin-tailwindcss
 

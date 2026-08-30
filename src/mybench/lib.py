@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from mybench.core import authoring, execute, init, results, run, sync
+from mybench.dashboard import server
 from mybench.schemas import CreatedTask, TaskResult
 
 
@@ -110,4 +111,13 @@ def load_results(models: list[str] | None = None, tasks: list[str] | None = None
 
 
 def serve_dashboard(port: int | None = None, host: str = "127.0.0.1") -> str:
-    return ""
+    """Serve the dashboard from a background thread, returning its URL and how it is reachable.
+
+    The frontend is compiled assets shipped with the package.
+    Its data comes from a JSON API backed by `load_results`. The server lives until the process exits.
+
+    Args:
+        port: The port to bind; a free one is chosen when omitted.
+        host: The interface to bind. The default keeps the server off the local network.
+    """
+    return server.serve_dashboard(port, host)

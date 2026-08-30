@@ -1,9 +1,11 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from mybench.core.git import run_git
 from mybench.lib import init_benchmark
+from mybench.schemas import BenchmarkConfig
 from mybench.settings import load_user_settings
 
 
@@ -20,7 +22,8 @@ def test_init_benchmark_scaffolds_a_committed_repository(tmp_path: Path, monkeyp
 
     init_benchmark(str(benchmark))
 
-    assert (benchmark / "config.yaml").read_text(encoding="utf-8") == "models: []\n"
+    config = yaml.safe_load((benchmark / "config.yaml").read_text(encoding="utf-8"))
+    assert config == BenchmarkConfig().model_dump(exclude_none=True)
     assert (benchmark / ".gitignore").read_text(encoding="utf-8") == "tries/\n"
     assert (benchmark / "tasks" / ".gitkeep").is_file()
     assert (benchmark / "runs" / ".gitkeep").is_file()

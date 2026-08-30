@@ -1,6 +1,8 @@
 """Command line entry point for MyBench."""
 
+import contextlib
 from pathlib import Path
+import threading
 from typing import Annotated
 
 import typer
@@ -109,6 +111,17 @@ def push(
     if outcome.scrubbed:
         typer.echo(f"Scrubbed credentials from {outcome.scrubbed} files.")
     typer.echo(f"Pushed to {outcome.remote}")
+
+
+@app.command()
+def dashboard(
+    port: Annotated[int | None, typer.Option(help="The port to bind; a free one is chosen when omitted")] = None,
+    host: Annotated[str, typer.Option(help="The interface to bind; 0.0.0.0 exposes the server")] = "127.0.0.1",
+) -> None:
+    """Serve the dashboard and print its URL; Ctrl+C stops it."""
+    typer.echo(lib.serve_dashboard(port, host))
+    with contextlib.suppress(KeyboardInterrupt):
+        threading.Event().wait()
 
 
 @app.command()

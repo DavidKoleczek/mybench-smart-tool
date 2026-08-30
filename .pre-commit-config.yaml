@@ -26,3 +26,34 @@ repos:
         language: system
         types_or: [python, pyi]
         pass_filenames: false
+
+      - id: dashboard-format
+        name: dashboard prettier
+        entry: pnpm --dir dashboard format
+        language: system
+        types_or: [ts, tsx, css, html, json, yaml, markdown]
+        files: ^dashboard/
+        pass_filenames: false
+
+      - id: dashboard-lint
+        name: dashboard eslint
+        entry: pnpm --dir dashboard lint
+        language: system
+        types_or: [ts, tsx]
+        files: ^dashboard/
+        pass_filenames: false
+
+      - id: dashboard-typecheck
+        name: dashboard typecheck
+        entry: pnpm --dir dashboard typecheck
+        language: system
+        types_or: [ts, tsx]
+        files: ^dashboard/
+        pass_filenames: false
+
+      - id: dashboard-build
+        name: dashboard build
+        entry: pnpm --dir dashboard build
+        language: system
+        files: ^dashboard/
+        pass_filenames: false
