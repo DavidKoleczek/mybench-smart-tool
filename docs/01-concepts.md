@@ -16,6 +16,11 @@ See [Task Format](03-task-format.md).
 A measure attached to a task that scores a model's output for that task. 
 A task has zero or more evaluations; one with none is run and viewed, never scored.
 
+## Task Run
+
+One execution of one task by one model. 
+Running the benchmark produces a task run for each pair of model and task it executes, each stored on its own.
+
 ## Model
 
 The model is what MyBench measures, whilst everything else is kept as a fixed variable.

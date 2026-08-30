@@ -89,4 +89,5 @@ The repos that we have exemplars are (add to the list as we get more, the one ex
 - https://github.com/astral-sh/ty
 - https://github.com/astral-sh/uv
 - https://github.com/astral-sh/ruff
+- https://github.com/fastapi/typer
 

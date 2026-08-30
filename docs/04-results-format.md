@@ -43,7 +43,7 @@ These paths are bind mounted from the host while the container runs, so output s
 `run.yaml` is written last and marks the run complete. 
 A directory without it is a crashed run and is ignored by [Read Results](02-library.md#read-results).
 
-## Run Record
+## Task Run Record
 
 ```yaml
 task: where-was-this-taken
@@ -67,6 +67,7 @@ format: 1
 Every run records when it ran and what produced it: the start and finish times, the MyBench version, the harness version, and the version of the task at the time it ran. 
 Results for a task are comparable only within the same major version of that task; see [task versioning](03-task-format.md#versioning). 
 Usage and cost come from the harness session. 
+`session_id` is omitted when the run failed before the harness produced a session. 
 `status` is `success`, `error`, or `timeout`. 
 Anything but `success` is a harness or environment failure, not a model score: the run is kept for inspection, is never scored, and does not stop [Run](02-library.md#run) from trying the pair again.
 
@@ -109,8 +110,19 @@ A `judge` evaluation adds its per-criterion results and written report:
 This schema is the whole contract between graders and stored results: any grader implementation, present or future, that writes it is interchangeable.
 
 `evaluation.yaml` is a byte for byte snapshot of the evaluation definition that produced the score, so a grade from an older definition of the evaluation is detectable. 
-Regrading replaces the evaluation's directory; the run record, transcript, and workspace are never touched. 
+Regrading replaces the evaluation's directory; the task run record, transcript, and workspace are never touched. 
 A `manual` evaluation's `score.json` appears when the score is entered from the dashboard.
+
+## Try Runs
+
+[Try](02-library.md#try) writes the same run directory layout under `tries/` instead of `runs/`:
+
+```
+tries/<task-id>/<model-slug>/<timestamp>/
+```
+
+`tries/` is gitignored, so tries never leave the machine, and [Read Results](02-library.md#read-results) never reads them.
+Re-evaluating a try replaces its `evals/` directory; the run record, transcript, and workspace are never touched.
 
 ## Sanitization
 

@@ -42,6 +42,8 @@ name: Where Was This Taken
 version: 1.2.0
 tags: [vision, instruction-following]
 timeout_seconds: 900
+setup:
+  - unzip -q photos.zip
 artifacts:
   - answer.json
 evaluations:
@@ -53,7 +55,8 @@ evaluations:
 - `name`: display name.
 - `version`: semantic version; see [Versioning](#versioning).
 - `tags`: optional labels for filtering and the dashboard.
-- `timeout_seconds`: hard limit on the model's run; hitting it records a timeout in the [run record](04-results-format.md#run-record), not a score.
+- `timeout_seconds`: hard limit on the model's run; hitting it records a timeout in the [task run record](04-results-format.md#task-run-record), not a score.
+- `setup`: optional shell commands, run in order in the working directory after `input/` is copied in and before the model starts. A failing command records an `error` in the [task run record](04-results-format.md#task-run-record) and the model never starts.
 - `artifacts`: working directory paths that are the deliverables, like a built game or a finished SVG. The whole working directory is captured either way; these tell the dashboard what to surface.
 - `evaluations`: zero or more. A task with none is still run and captured, for work you only want to look at.
 

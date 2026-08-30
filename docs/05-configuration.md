@@ -14,8 +14,8 @@ models:
 grading_model: openai/gpt-5.6-terra
 ```
 
-- `models`: the models under test, as `<provider>/<model>` in the harness's naming. [Run](02-library.md#run) executes these over the tasks on disk, and the exact string is recorded in every [run record](04-results-format.md#run-record).
-- `grading_model`: the model `judge` evaluations grade with, separate from the models under test and recorded in the [score record](04-results-format.md#score-records).
+- `models`: the models under test, as `<provider>/<model>` in the harness's naming. [Run](02-library.md#run) executes these over the tasks on disk, and the exact string is recorded in every [task run record](04-results-format.md#task-run-record).
+- `grading_model`: the model `judge` evaluations grade with, separate from the models under test and recorded in the [score record](04-results-format.md#score-records). Optional when no task has a `judge` evaluation.
 
 ## User Settings
 
@@ -30,7 +30,7 @@ Lives in the platform's per-user config directory: `~/.config/mybench/settings.j
 
 ## Model Providers
 
-[Run](02-library.md#run) needs credentials for each configured model, read from the environment and passed to the harness. 
+[Run](02-library.md#run) needs credentials for each configured model, and [Try](02-library.md#try) for the model it runs, read from the environment and passed to the harness. 
 Deterministic capabilities run with no credentials configured. 
 Invoking a capability without the credentials it needs fails with a message naming exactly what to configure. 
 Credentials never enter the config file, the user settings, or the [results](04-results-format.md#sanitization).
