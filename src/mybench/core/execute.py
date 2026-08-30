@@ -8,10 +8,20 @@ from pathlib import Path
 import shutil
 
 from mybench.core import benchmark
-from mybench.harness import opencode
-from mybench.harness.execution import ExecResult, HarnessSession, docker_client, ensure_image
+from mybench.harness import grading, opencode
+from mybench.harness.execution import (
+    CONTAINER_EVALS,
+    CONTAINER_WORKSPACE,
+    ExecResult,
+    HarnessSession,
+    docker_client,
+    ensure_image,
+)
+from mybench.intelligence.interface import Intelligence, default_intelligence
+from mybench.intelligence.schemas import ContainerWorkspace
 from mybench.schemas import (
     BenchmarkConfig,
+    JudgeEvaluation,
     MyBenchError,
     ScoreRecord,
     ScriptEvaluation,
@@ -43,7 +53,7 @@ def try_task(task: str | Path, model: str | None = None, reevaluate: Path | None
     task_dir = benchmark.resolve_task(task, home)
     task_def = benchmark.load_task(task_dir)
     if reevaluate is not None:
-        return reevaluate_try(task_def, task_dir, reevaluate.expanduser().resolve())
+        return reevaluate_try(task_def, task_dir, reevaluate.expanduser().resolve(), config)
     chosen = benchmark.resolve_model(config, model)
     run_dir = benchmark.new_run_dir(home / "tries", task_def.id, chosen)
     return execute_task(task_def, task_dir, chosen, config, run_dir)
@@ -57,6 +67,7 @@ def execute_task(task: Task, task_dir: Path, model: str, config: BenchmarkConfig
     """
     instructions = benchmark.read_instructions(task_dir)
     env = provider_env(model, config)
+    intelligence, grading_model = grading_setup(task, config)
     client = docker_client(timeout_seconds=task.timeout_seconds + CLIENT_TIMEOUT_MARGIN_SECONDS)
     image = ensure_image(client)
     workspace = run_dir / "workspace"
@@ -100,7 +111,7 @@ def execute_task(task: Task, task_dir: Path, model: str, config: BenchmarkConfig
                 session_id = summary.session_id or None
                 usage = summary.usage
             if status == "success":
-                run_evaluations(session, task, task_dir, run_dir)
+                run_evaluations(session, task, task_dir, run_dir, instructions, intelligence, grading_model)
     record = TaskRunRecord(
         task=task.id,
         task_version=task.version,
@@ -117,7 +128,7 @@ def execute_task(task: Task, task_dir: Path, model: str, config: BenchmarkConfig
     return benchmark.read_task_result(run_dir)
 
 
-def reevaluate_try(task: Task, task_dir: Path, try_dir: Path) -> TaskResult:
+def reevaluate_try(task: Task, task_dir: Path, try_dir: Path, config: BenchmarkConfig) -> TaskResult:
     """Rerun the task's current evaluations against an earlier try's workspace.
 
     Only evals/ is replaced; the run record, transcript, and workspace stay the same.
@@ -128,6 +139,8 @@ def reevaluate_try(task: Task, task_dir: Path, try_dir: Path) -> TaskResult:
     workspace = try_dir / "workspace"
     if not workspace.is_dir():
         raise MyBenchError(f"{try_dir} has no workspace to evaluate.")
+    instructions = benchmark.read_instructions(task_dir)
+    intelligence, grading_model = grading_setup(task, config)
     client = docker_client(timeout_seconds=task.timeout_seconds + CLIENT_TIMEOUT_MARGIN_SECONDS)
     image = ensure_image(client)
     evals_dir = try_dir / "evals"
@@ -135,11 +148,36 @@ def reevaluate_try(task: Task, task_dir: Path, try_dir: Path) -> TaskResult:
         shutil.rmtree(evals_dir)
     evals_dir.mkdir()
     with HarnessSession(client, image, workspace, evals_dir, None, {}) as session:
-        run_evaluations(session, task, task_dir, try_dir)
+        run_evaluations(session, task, task_dir, try_dir, instructions, intelligence, grading_model)
     return benchmark.read_task_result(try_dir)
 
 
-def run_evaluations(session: HarnessSession, task: Task, task_dir: Path, run_dir: Path) -> None:
+def grading_setup(task: Task, config: BenchmarkConfig) -> tuple[Intelligence, str] | tuple[None, None]:
+    """What will grade the task's judge evaluations, checked before anything costly runs.
+
+    Nothing when the task has no judge evaluations; otherwise the intelligence, preflighted,
+    and the configured grading model.
+    """
+    if not any(isinstance(evaluation, JudgeEvaluation) for evaluation in task.evaluations):
+        return None, None
+    if config.grading_model is None:
+        raise MyBenchError(
+            f"Task '{task.id}' has judge evaluations but config.yaml sets no grading_model. Add one to grade with."
+        )
+    intelligence = default_intelligence()
+    intelligence.preflight()
+    return intelligence, config.grading_model
+
+
+def run_evaluations(
+    session: HarnessSession,
+    task: Task,
+    task_dir: Path,
+    run_dir: Path,
+    instructions: str,
+    intelligence: Intelligence | None,
+    grading_model: str | None,
+) -> None:
     """Stage and run each evaluation in task.yaml order; a failure becomes a null score, never an exception."""
     for evaluation in task.evaluations:
         eval_dir = run_dir / "evals" / evaluation.id
@@ -149,10 +187,26 @@ def run_evaluations(session: HarnessSession, task: Task, task_dir: Path, run_dir
         else:
             eval_dir.mkdir(parents=True, exist_ok=True)
         benchmark.snapshot_evaluation(eval_dir, evaluation)
-        if not isinstance(evaluation, ScriptEvaluation):
-            continue
-        result = session.run_eval(evaluation.command, evaluation.id, task.timeout_seconds)
-        _collect_score(eval_dir, result)
+        if isinstance(evaluation, ScriptEvaluation):
+            result = session.run_eval(evaluation.command, evaluation.id, task.timeout_seconds)
+            _collect_score(eval_dir, result)
+        elif isinstance(evaluation, JudgeEvaluation) and intelligence is not None and grading_model is not None:
+            workspace = ContainerWorkspace(container_id=session.container_id, path=CONTAINER_WORKSPACE)
+            try:
+                record = grading.grade_judge_evaluation(
+                    intelligence,
+                    grading_model,
+                    instructions,
+                    evaluation,
+                    workspace,
+                    f"{CONTAINER_EVALS}/{evaluation.id}",
+                    task.timeout_seconds,
+                )
+            except Exception as error:  # a broken grader is this evaluation's data, not the run's crash
+                record = ScoreRecord(score=None, graded=_now(), details={"error": f"{type(error).__name__}: {error}"})
+            (eval_dir / "score.json").write_text(
+                record.model_dump_json(indent=2, exclude_none=True), encoding="utf-8", newline="\n"
+            )
 
 
 def provider_env(model: str, config: BenchmarkConfig) -> dict[str, str]:

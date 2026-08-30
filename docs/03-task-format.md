@@ -93,7 +93,7 @@ Use it for anything checkable without a model: parsing a structured answer the i
 ### judge
 
 LLM as judge. 
-The grader is an agent that follows `steps`, inspects the working directory and the eval directory, and fills in the `rubric`: named criteria, each with integer points and a description.
+The grader is an agent that follows `steps`, inspects the working directory and the eval directory, and scores the `rubric`: named criteria, each with a weight and a description.
 
 ```yaml
 - id: blog-quality
@@ -102,13 +102,13 @@ The grader is an agent that follows `steps`, inspects the working directory and 
     Read the post the model wrote in the working directory.
     Compare it against the reference posts in the eval directory.
   rubric:
-    voice: {points: 10, description: Reads like the reference posts, not like a press release}
-    structure: {points: 5, description: Has a point and gets to it}
+    voice: {weight: 2, description: Reads like the reference posts, not like a press release}
+    structure: {weight: 1, description: Has a point and gets to it}
 ```
 
 The grader is held to the rubric by deterministic code. 
-MyBench computes the score as points awarded over points possible, normalized to 0 to 100, so the points do not need to sum to 100.
-It submits its scores through a tool whose schema is generated from the rubric, so only the declared criteria are accepted and each award must be an integer between zero and that criterion's points; an invalid submission is sent back for the grader to take another turn to retry.
+It grades the whole rubric in one session, scoring every criterion 0 to 100 on its own merits; MyBench computes the evaluation's score as the weighted mean of the criterion scores, so the weights need not sum to anything in particular. 
+The grader submits through a tool whose schema is generated from the rubric, so only the declared criteria are accepted and each score must be 0 to 100; an invalid or missing submission is sent back for the grader to take another turn to retry.
 
 The grading model is declared in the [config file](05-configuration.md), separate from the models under test, and recorded in the [score record](04-results-format.md#score-records). 
 The grader runs in the container through the same swappable intelligence interface as the rest of the [library](02-library.md), currently the GitHub Copilot SDK. 

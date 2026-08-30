@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from mybench.core import execute, init
+from mybench.core import execute, init, run
 from mybench.schemas import Task, TaskResult
 
 
@@ -47,7 +47,18 @@ def run_benchmark(
     tasks: list[str] | None = None,
     rerun: bool = False,
 ) -> list[TaskResult]:
-    return []
+    """Run the benchmark, writing to the results: the configured models against the tasks on disk.
+
+    Pairs that already have a successful result for the task's current major version are skipped,
+    so a bare call executes exactly what is new. Each pair succeeds or fails on its own; the
+    returned results carry each recorded run's status.
+
+    Args:
+        models: Model names as the config file declares them; filters the matrix for this invocation.
+        tasks: Task ids; filters the matrix for this invocation.
+        rerun: Execute the selected pairs even where results exist, appending to the run history.
+    """
+    return run.run_benchmark(models, tasks, rerun)
 
 
 def push_results(remote: str | None = None) -> None:

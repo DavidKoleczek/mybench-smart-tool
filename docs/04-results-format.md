@@ -102,8 +102,8 @@ A `judge` evaluation adds its per-criterion results and written report:
     "implementation": "copilot-sdk 0.2.1"
   },
   "criteria": {
-    "voice": {"awarded": 8, "points": 10},
-    "structure": {"awarded": 3, "points": 5}
+    "voice": {"score": 80, "weight": 2, "reasoning": "Conversational like the references, but the close drifts formal."},
+    "structure": {"score": 60, "weight": 1, "reasoning": "The point arrives late; the middle section wanders."}
   },
   "report": "The post opens strongly but...",
   "details": {}

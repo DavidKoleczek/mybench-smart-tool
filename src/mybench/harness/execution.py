@@ -136,6 +136,12 @@ class HarnessSession:
             if self._config_dir is not None:
                 self._config_dir.cleanup()
 
+    @property
+    def container_id(self) -> str:
+        if self._container is None:
+            raise MyBenchError("The harness session is not open; use it as a context manager.")
+        return self._container.id or ""
+
     def harness_version(self) -> str:
         """The `harness:` string for run.yaml, read from inside the container, never from the image tag."""
         result = self._exec(["opencode", "--version"])

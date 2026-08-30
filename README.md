@@ -8,7 +8,10 @@ It currently uses OpenCode as the common harness due to its support for many pro
 
 ## Installation
 
-Requires [uv](https://docs.astral.sh/uv/getting-started/installation/).
+Prerequisites:
+- Requires [uv](https://docs.astral.sh/uv/getting-started/installation/).
+- [GitHub CLI](https://cli.github.com/) for persisting your benchmark data to GitHub and for intelligence features with GitHub Copilot.
+- Intelligent features require a [GitHub Copilot subscription](https://github.com/github/copilot-cli#prerequisites).
 
 ```bash
 uv tool install git+https://github.com/DavidKoleczek/mybench-smart-tool

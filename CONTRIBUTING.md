@@ -10,6 +10,8 @@ Install:
 - [uv](https://docs.astral.sh/uv/getting-started/installation/): Manages Python environments
 - [prek](https://github.com/j178/prek): Used for precommit hooks. Recommended to install through PyPI/uv with `uv tool install prek`. Use `uv tool upgrade prek` to update it.
 - [Docker](https://docs.docker.com/engine/install)
+- [GitHub CLI](https://cli.github.com/) for persisting your benchmark data to GitHub and for intelligence features with GitHub Copilot.
+- [GitHub Copilot subscription](https://github.com/github/copilot-cli#prerequisites) for intelligent features.
 
 ### Initial Setup
 

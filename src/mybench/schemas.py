@@ -18,7 +18,7 @@ class MyBenchError(Exception):
 
 
 class RubricCriterion(BaseModel):
-    points: int = Field(gt=0)
+    weight: float = Field(default=1.0, ge=0)
     description: str
 
 
@@ -142,14 +142,9 @@ class Grader(BaseModel):
 
 
 class CriterionResult(BaseModel):
-    awarded: int = Field(ge=0)
-    points: int = Field(gt=0)
-
-    @model_validator(mode="after")
-    def _awarded_within_points(self) -> Self:
-        if self.awarded > self.points:
-            raise ValueError(f"awarded {self.awarded} exceeds points {self.points}")
-        return self
+    score: float = Field(ge=0, le=100)
+    weight: float = Field(ge=0)
+    reasoning: str | None = None
 
 
 class ScoreRecord(BaseModel):

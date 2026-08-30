@@ -61,21 +61,46 @@ def resolve_task(task: str | Path, benchmark: Path) -> Path:
 
 
 def load_task(task_dir: Path) -> Task:
-    """task.yaml with the directory name as the id; rejects what only the intelligence layer can run."""
+    """task.yaml with the directory name as the id."""
     path = task_dir / "task.yaml"
     if not path.is_file():
         raise MyBenchError(f"{task_dir} is not a task: it has no task.yaml.")
     try:
         data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        task = Task.model_validate({"id": task_dir.name, **data})
+        return Task.model_validate({"id": task_dir.name, **data})
     except (yaml.YAMLError, ValidationError) as error:
         raise MyBenchError(f"{path} is not a valid task definition: {error}") from error
-    judges = [evaluation.id for evaluation in task.evaluations if evaluation.kind == "judge"]
-    if judges:
-        raise MyBenchError(
-            f"Task '{task.id}' declares judge evaluations ({', '.join(judges)}), which this version of MyBench cannot run. Use script or manual evaluations."
-        )
-    return task
+
+
+def list_tasks(benchmark: Path) -> list[Path]:
+    """The benchmark's task directories, sorted by id; only directories holding a task.yaml count."""
+    tasks_dir = benchmark / "tasks"
+    if not tasks_dir.is_dir():
+        return []
+    return sorted(path for path in tasks_dir.iterdir() if (path / "task.yaml").is_file())
+
+
+def has_success_run(benchmark: Path, task: Task, model: str) -> bool:
+    """Whether runs/ holds a successful run of this task's current major version by this model.
+
+    Only success counts (a failed run never blocks a retry), and crashed or unreadable
+    run directories are passed over rather than trusted.
+    """
+    parent = benchmark / "runs" / task.id / model_slug(model)
+    if not parent.is_dir():
+        return False
+    major = task.version.partition(".")[0]
+    for run_dir in parent.iterdir():
+        record_path = run_dir / "run.yaml"
+        if not record_path.is_file():
+            continue
+        try:
+            record = TaskRunRecord.model_validate(yaml.safe_load(record_path.read_text(encoding="utf-8")))
+        except (yaml.YAMLError, ValidationError):
+            continue
+        if record.model == model and record.status == "success" and record.task_version.partition(".")[0] == major:
+            return True
+    return False
 
 
 def read_instructions(task_dir: Path) -> str:

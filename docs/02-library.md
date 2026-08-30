@@ -4,10 +4,9 @@ Every capability of MyBench is reachable from the `mybench` package.
 All other surfaces, including the CLI, are thin wrappers over the library and add no capability of their own.
 
 The intelligent commands are implemented with the [GitHub Copilot SDK](https://github.com/github/copilot-sdk) behind a thin internal interface, so the intelligence layer can be swapped for something else. 
-They require GitHub Copilot authentication (a signed-in Copilot CLI, or a BYOK provider key). Invoked without it, they fail with a message naming exactly what to configure. 
-Run and Try require credentials for the model under test, which are passed to the harness. 
-Deterministic capabilities run with no credentials configured. 
-TBD: how authentication is provided, both for the intelligence layer and for the model under test inside the container.
+Authentication is through the GitHub CLI. A token is generated from the signed-in `gh`, held only in memory, and handed to the Copilot runtime as an environment variable. Invoked without a signed-in `gh`, fails with a message naming exactly what to configure. 
+Run and Try require credentials for the model under test, read from the environment and passed to the harness. 
+Deterministic capabilities run with no credentials configured.
 
 ## Init
 

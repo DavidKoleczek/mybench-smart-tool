@@ -6,6 +6,7 @@ from typing import Annotated
 import typer
 
 from mybench import lib
+from mybench.core import run as run_module
 from mybench.schemas import MyBenchError
 from mybench.settings import load_user_settings
 
@@ -45,6 +46,34 @@ def try_(
     typer.echo(f"Status: {result.run.status}")
     if result.score is not None:
         typer.echo(f"Score: {result.score:g}")
+
+
+@app.command()
+def run(
+    model: Annotated[
+        list[str] | None, typer.Option(help="Only these config-declared models; repeat to give several")
+    ] = None,
+    task: Annotated[list[str] | None, typer.Option(help="Only these task ids; repeat to give several")] = None,
+    rerun: Annotated[bool, typer.Option(help="Execute the selection even where results already exist")] = False,
+) -> None:
+    """Run the configured models against the tasks on disk, appending to the results."""
+    skipped = 0
+    failed = 0
+    for outcome in run_module.run_pairs(model, task, rerun):
+        if outcome.skipped:
+            skipped += 1
+        elif outcome.error is not None:
+            failed += 1
+            typer.echo(f"{outcome.task} / {outcome.model}: {outcome.error}", err=True)
+        elif outcome.result is not None:
+            score = f", score {outcome.result.score:g}" if outcome.result.score is not None else ""
+            typer.echo(f"{outcome.task} / {outcome.model}: {outcome.result.run.status}{score}")
+            if outcome.result.run.status != "success":
+                failed += 1
+    if skipped:
+        typer.echo(f"Skipped {skipped} pairs that already have results.")
+    if failed:
+        raise typer.Exit(1)
 
 
 def main() -> int:
