@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from mybench.core import execute, init, run
+from mybench.core import execute, init, results, run, sync
 from mybench.schemas import Task, TaskResult
 
 
@@ -62,15 +62,36 @@ def run_benchmark(
 
 
 def push_results(remote: str | None = None) -> None:
-    return None
+    """Push the benchmark repository, tasks and results together, to its git remote.
+
+    Configured API key values are scrubbed from new files before anything is committed.
+    When no remote exists and none is given, a private GitHub repository is created through the signed-in GitHub CLI and pushed to.
+
+    Args:
+        remote: A git remote URL; remembered once set, and already set when the benchmark was cloned.
+    """
+    sync.push_results(remote)
 
 
 def pull_results() -> None:
-    return None
+    """Update the benchmark from its remote: a fetch and merge bringing down new tasks, results, and config.
+
+    A merge conflict stops the pull and names the conflicted files, left to be resolved with ordinary git tools in the benchmark repository.
+    """
+    sync.pull_results()
 
 
 def load_results(models: list[str] | None = None, tasks: list[str] | None = None) -> list[TaskResult]:
-    return []
+    """Load the stored results: every completed run under the benchmark's runs/.
+
+    Crashed run directories are ignored and tries never appear.
+    Results come back ordered by task, then model, then chronologically.
+
+    Args:
+        models: Exact model strings as run.yaml records them; filters the results.
+        tasks: Task ids; filters the results.
+    """
+    return results.load_results(models, tasks)
 
 
 def serve_dashboard(port: int | None = None, host: str = "127.0.0.1") -> str:

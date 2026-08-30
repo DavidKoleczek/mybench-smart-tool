@@ -83,7 +83,7 @@ def run_benchmark(
 ## Push
 
 Pushes the benchmark repository, tasks and results together, to its git remote.
-Creates and pushes the remote if new, otherwise pushes what is new. 
+When no remote exists and none is given, a private GitHub repository is created through the signed-in GitHub CLI and pushed to; otherwise what is new is pushed. 
 API keys are sanitized before anything leaves the machine. 
 
 ```python

@@ -13,7 +13,7 @@ mybench init <org>/<repo>
 mybench init https://github.com/<org>/<repo> <path>
 ```
 
-A target that looks like a URL, or like `<org>/<repo>` with nothing at that local path, is cloned, and the remote comes with the clone, so `mybench publish` and `mybench pull` need no `--remote`. 
+A target that looks like a URL, or like `<org>/<repo>` with nothing at that local path, is cloned, and the remote comes with the clone, so `mybench push` and `mybench pull` need no `--remote`. 
 The clone lands under the repo's name in the current directory unless a path follows the target. 
 Any other target is a path: registered as is when it is already a benchmark, scaffolded fresh when it is not. 
 To scaffold at a path shaped like the shorthand, write it as `./<org>/<repo>`.
@@ -77,10 +77,11 @@ mybench run --rerun
 # Push new tasks and results to the remembered remote
 mybench push
 
-# Set the remote; required only if the benchmark was not cloned
+# Point the benchmark at an existing remote instead
 mybench push --remote "<git url>"
 ```
 
+Without a remote and without `--remote`, push creates a private GitHub repository through the signed-in GitHub CLI, so `--remote` is only for an existing or non-GitHub remote. 
 Pushing never happens on its own; `mybench run` only writes locally.
 
 ## mybench pull

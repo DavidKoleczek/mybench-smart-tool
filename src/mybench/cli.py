@@ -7,6 +7,7 @@ import typer
 
 from mybench import lib
 from mybench.core import run as run_module
+from mybench.core import sync
 from mybench.schemas import MyBenchError
 from mybench.settings import load_user_settings
 
@@ -74,6 +75,24 @@ def run(
         typer.echo(f"Skipped {skipped} pairs that already have results.")
     if failed:
         raise typer.Exit(1)
+
+
+@app.command()
+def push(
+    remote: Annotated[str | None, typer.Option(help="A git remote URL; overrides where the benchmark pushes")] = None,
+) -> None:
+    """Push new tasks and results to the remote, creating a private GitHub repository when there is none."""
+    outcome = sync.push_results(remote)
+    if outcome.scrubbed:
+        typer.echo(f"Scrubbed credentials from {outcome.scrubbed} files.")
+    typer.echo(f"Pushed to {outcome.remote}")
+
+
+@app.command()
+def pull() -> None:
+    """Update the benchmark from its remote: new tasks, results, and config."""
+    summary = sync.pull_results()
+    typer.echo(summary or "Updated.")
 
 
 def main() -> int:

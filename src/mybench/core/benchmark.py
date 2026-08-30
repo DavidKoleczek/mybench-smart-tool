@@ -9,6 +9,7 @@ import yaml
 
 from mybench.core.init import CONFIG_FILENAME
 from mybench.schemas import (
+    RESULTS_FORMAT_VERSION,
     SLUG_PATTERN,
     BenchmarkConfig,
     Evaluation,
@@ -150,8 +151,18 @@ def read_task_result(run_dir: Path) -> TaskResult:
     if not record_path.is_file():
         raise MyBenchError(f"{run_dir} is not a completed run: it has no run.yaml.")
     try:
-        record = TaskRunRecord.model_validate(yaml.safe_load(record_path.read_text(encoding="utf-8")))
-    except (yaml.YAMLError, ValidationError) as error:
+        data = yaml.safe_load(record_path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as error:
+        raise MyBenchError(f"{record_path} is not a valid run record: {error}") from error
+    recorded_format = data.get("format", RESULTS_FORMAT_VERSION) if isinstance(data, dict) else None
+    if isinstance(recorded_format, int) and recorded_format > RESULTS_FORMAT_VERSION:
+        raise MyBenchError(
+            f"{run_dir} uses results format {recorded_format}, newer than this MyBench reads"
+            f" ({RESULTS_FORMAT_VERSION}). Upgrade mybench to read it."
+        )
+    try:
+        record = TaskRunRecord.model_validate(data)
+    except ValidationError as error:
         raise MyBenchError(f"{record_path} is not a valid run record: {error}") from error
     results = []
     evals_dir = run_dir / "evals"
