@@ -56,7 +56,7 @@ def try_task(
 ) -> TaskResult
 ```
 
-- `task`: a task id in the benchmark, or a path to a task directory anywhere on disk, so a task can be tried before it joins `tasks/`.
+- `task`: a task id in the benchmark, or a path to a task directory anywhere on disk, so a task can be tried before it joins `tasks/`. A `Path` is always a path; a `str` is an id when it is shaped like one, a lowercase slug, and a path otherwise. To reach a directory whose name is itself a valid id, write it with a separator, like `./where-was-this-taken`.
 - `model`: any model in the harness's naming, not limited to the [config file](05-configuration.md); the config's first model when omitted.
 - `reevaluate`: a previous try's directory, the `path` of its returned result. The model run is skipped and the task's current evaluations run against that try's workspace, replacing the try's evaluation results, so evaluations can be iterated on without paying for a model run.
 
@@ -77,6 +77,9 @@ def run_benchmark(
     rerun: bool = False,
 ) -> list[TaskResult]
 ```
+
+- `models`: model names as the [config file](05-configuration.md) declares them.
+- `tasks`: task ids. Unlike [Try](#try), a path is never accepted: Run only executes tasks that live in the benchmark.
 
 ## Push
 

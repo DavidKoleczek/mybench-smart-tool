@@ -1,13 +1,19 @@
 """Top level entry point for the MyBench library."""
 
-from datetime import UTC, datetime
 from pathlib import Path
 
-from mybench.core import init
-from mybench.schemas import Task, TaskResult, TaskRunRecord
+from mybench.core import execute, init
+from mybench.schemas import Task, TaskResult
 
 
 def init_benchmark(target: str, path: Path | None = None) -> None:
+    """Point MyBench at a benchmark, recording where it lives so every other capability finds it.
+
+    Args:
+        target: What to point at.
+            A git URL or GitHub `<org>/<repo>` is cloned, a path to an existing benchmark is used as is, and any other path gets a new benchmark.
+        path: Where to put a clone. Defaults to the repository's name in the current directory. Only used when cloning.
+    """
     return init.init_benchmark(target, path)
 
 
@@ -24,19 +30,16 @@ def try_task(
     model: str | None = None,
     reevaluate: Path | None = None,
 ) -> TaskResult:
-    return TaskResult(
-        path=Path(),
-        run=TaskRunRecord(
-            task="example-task",
-            task_version="1.0.0",
-            model="provider/model",
-            started=datetime.now(UTC),
-            finished=datetime.now(UTC),
-            status="success",
-            mybench_version="0.0.0",
-            harness="opencode 0.0.0",
-        ),
-    )
+    """Run one task against one model, writing to a try directory.
+
+    Args:
+        task: A task id, resolved under the benchmark's `tasks/`, or a path to a task directory anywhere on disk.
+            A `Path` is always a path; a `str` is an id, and is read as a path only when it is not a valid id.
+        model: Any valid model in the harness's naming
+        reevaluate: A previous try's directory.
+            The model run is skipped and the task's current evaluations run against that try's workspace.
+    """
+    return execute.try_task(task, model, reevaluate)
 
 
 def run_benchmark(

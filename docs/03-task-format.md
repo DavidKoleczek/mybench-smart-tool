@@ -33,7 +33,7 @@ tasks/<task-id>/
 `instructions.md` is the prompt, given to the model verbatim. 
 `input/` is optional material copied into the container working directory before the model starts, such as a photo, a screenshot, or a document set. 
 `evals/<eval-id>/` holds what one evaluation needs: check scripts, answer keys, reference outputs. 
-It is staged into the container only after the task finishes, so the model can never see an answer key.
+Its content is absent from the container until the model's session ends so the model can never see an answer key.
 
 ## task.yaml
 
@@ -66,7 +66,8 @@ Evaluations run inside the same container as the task, after the model's session
 Nothing is pulled out of the container to be evaluated: an evaluation sees the exact filesystem state the model left behind, so it can parse, diff, build, or execute the work in place. 
 For each evaluation, MyBench stages the task's `evals/<eval-id>/` directory into the container, absent until now so the model could not see it, and sets the environment variable `MYBENCH_EVAL_DIR` to its path. 
 The evaluation runs with the model's working directory as cwd and writes `score.json`, a [score record](04-results-format.md#score-records), into `MYBENCH_EVAL_DIR`. 
-That directory is bind mounted from the host, so the score and anything else the evaluation writes land directly in the [run directory](04-results-format.md#run-directory-layout).
+That directory is bind mounted from the host, so the score and anything else the evaluation writes land directly in the [run directory](04-results-format.md#run-directory-layout). 
+Because the staging target is the run directory, the evaluation's input material is captured next to its score, so a stored result stays interpretable even after the task's evaluations change.
 
 Scores are floats from 0 to 100. 
 A task's score is the weighted mean of its evaluation scores; `weight` defaults to 1.
@@ -85,7 +86,7 @@ A nonzero exit records an evaluation error instead of a score.
   command: uv run "$MYBENCH_EVAL_DIR/detect.py"
 ```
 
-The container provides `uv`, so Python check scripts are invoked with `uv run` and declare any dependencies inline in the script.
+The container provides `uv` and a pre-installed Python interpreter, so Python check scripts are invoked with `uv run`, declare any dependencies inline, and need no network to start.
 
 Use it for anything checkable without a model: parsing a structured answer the instructions told the model to write to a file, checking against labels in the eval directory, or diffing a scaffolded project against a reference one.
 

@@ -38,7 +38,8 @@ Everything the run produces is kept.
 `transcript.json` is the harness session exported with `opencode export`: every message, tool call, and part.
 `harness.log` is the harness's own stdout and stderr.
 The `evals/<eval-id>/` directories keep whatever else an evaluation wrote alongside its score.
-These paths are bind mounted from the host while the container runs, so output survives even a container that dies badly.
+These paths are bind mounted from the host while the container runs, so output survives even a container that dies badly. 
+Before the container is removed, file ownership of the mounts is returned to the invoking user, since files the container writes would otherwise land root-owned on Linux.
 
 `run.yaml` is written last and marks the run complete. 
 A directory without it is a crashed run and is ignored by [Read Results](02-library.md#read-results).
@@ -53,11 +54,12 @@ started: 2026-08-29T14:03:12Z
 finished: 2026-08-29T14:09:47Z
 status: success
 mybench_version: 0.3.0
-harness: opencode 0.6.4
+harness: opencode 1.18.25
 session_id: ses_abc123
 usage:
   input_tokens: 48210
   output_tokens: 9114
+  reasoning_tokens: 1204
   cache_read_tokens: 31804
   cache_write_tokens: 2210
   cost_usd: 0.41
@@ -67,9 +69,11 @@ format: 1
 Every run records when it ran and what produced it: the start and finish times, the MyBench version, the harness version, and the version of the task at the time it ran. 
 Results for a task are comparable only within the same major version of that task; see [task versioning](03-task-format.md#versioning). 
 Usage and cost come from the harness session. 
+Cache token counts and `cost_usd` depend on the provider: a local or custom endpoint reports 0 for both unless its configuration declares per-token pricing. 
 `session_id` is omitted when the run failed before the harness produced a session. 
 `status` is `success`, `error`, or `timeout`. 
-Anything but `success` is a harness or environment failure, not a model score: the run is kept for inspection, is never scored, and does not stop [Run](02-library.md#run) from trying the pair again.
+Anything but `success` is a harness or environment failure, not a model score: the run is kept for inspection, is never scored, and does not stop [Run](02-library.md#run) from trying the pair again. 
+A `timeout` or `error` run still keeps whatever the harness produced: the transcript exports even for a killed session, and the workspace may hold finished work, so the status means unscored, not empty.
 
 ## Score Records
 

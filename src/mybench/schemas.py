@@ -80,10 +80,31 @@ class Task(BaseModel):
 # region: Task Runs and Results
 
 
+class ProviderConfig(BaseModel):
+    """A provider the harness does not know natively, declared as a harness provider.
+
+    `npm` names the harness provider SDK package; the default covers any OpenAI-compatible
+    endpoint, so a local or self-hosted one needs only `base_url`. `options` and `model_params`
+    merge verbatim into the harness's provider and model configuration, so any harness
+    parameter is expressible without a schema change.
+    """
+
+    npm: str = "@ai-sdk/openai-compatible"
+    base_url: str | None = Field(
+        default=None, description="Endpoint URL, checked for reachability and served models before a run"
+    )
+    api_key_env: str | None = Field(
+        default=None, description="Environment variable holding the endpoint's API key; omitted when keyless"
+    )
+    options: dict[str, Any] = Field(default_factory=dict)
+    model_params: dict[str, Any] = Field(default_factory=dict)
+
+
 class BenchmarkConfig(BaseModel):
     """config.yaml at the benchmark root; describes the benchmark, never the machine."""
 
     models: list[str] = Field(default_factory=list)
+    providers: dict[str, ProviderConfig] = Field(default_factory=dict)
     grading_model: str | None = None
 
 
@@ -93,6 +114,7 @@ type TaskRunStatus = Literal["success", "error", "timeout"]
 class Usage(BaseModel):
     input_tokens: int = 0
     output_tokens: int = 0
+    reasoning_tokens: int = 0
     cache_read_tokens: int = 0
     cache_write_tokens: int = 0
     cost_usd: float = 0.0

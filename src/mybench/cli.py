@@ -29,6 +29,24 @@ def init(
         typer.echo(f"Benchmark at {settings.benchmark_path}")
 
 
+@app.command(name="try")
+def try_(
+    task: Annotated[str, typer.Argument(help="A task id in the benchmark, or a path to a task directory")],
+    model: Annotated[
+        str | None, typer.Option(help="Any model in the harness's naming; the config's first model when omitted")
+    ] = None,
+    reevaluate: Annotated[
+        Path | None, typer.Option(help="A previous try's directory; reruns the evaluations against its workspace")
+    ] = None,
+) -> None:
+    """Run one task against one model without touching the results."""
+    result = lib.try_task(task, model, reevaluate)
+    typer.echo(f"Try directory: {result.path}")
+    typer.echo(f"Status: {result.run.status}")
+    if result.score is not None:
+        typer.echo(f"Score: {result.score:g}")
+
+
 def main() -> int:
     try:
         app()

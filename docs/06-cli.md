@@ -39,6 +39,23 @@ mybench create --idea "<idea>" --context "<file, url, or text>"
 
 Prints the path of the task written to disk.
 
+## mybench try
+
+```bash
+# Run one task by id against the first configured model
+mybench try <task-id>
+
+# Try a task directory that is not in the benchmark yet, and pick the model
+mybench try ./drafts/where-was-this-taken --model "<model>"
+
+# Rerun the evaluations against an earlier try's workspace
+mybench try <task-id> --reevaluate <try dir>
+```
+
+A target shaped like a task id is looked up under `tasks/`; anything else is a path to a task directory. 
+To try a directory whose name is itself a valid id, write it with a separator, as `./<task-id>`. 
+Prints the try directory, which stays on this machine and never reaches the results.
+
 ## mybench run
 
 ```bash
@@ -46,13 +63,13 @@ Prints the path of the task written to disk.
 mybench run
 
 # Filter the matrix for this invocation; repeat either flag
-mybench run --model "<model>" --task "<task>"
+mybench run --model "<model>" --task "<task-id>"
 
 # Run the selection again even where results already exist
 mybench run --rerun
 ```
 
-`--model` and `--task` only narrow what the [config file](05-configuration.md) and the tasks on disk already declare.
+`--model` takes a model name as the [config file](05-configuration.md) declares it and `--task` a task id; both only narrow what the config and the tasks on disk already declare.
 
 ## mybench push
 
