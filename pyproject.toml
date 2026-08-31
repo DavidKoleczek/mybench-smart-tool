@@ -44,7 +44,7 @@ dev = [
 [tool.ruff]
 line-length = 120
 target-version = "py313"
-extend-exclude = ["amplifier-smart-tools", "dashboard"]
+extend-exclude = ["dashboard"]
 
 [tool.ruff.lint]
 select = [
@@ -79,9 +79,6 @@ split-on-trailing-comma = false
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
-
-[tool.ty.src]
-exclude = ["amplifier-smart-tools"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
