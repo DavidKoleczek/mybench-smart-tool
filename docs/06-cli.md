@@ -1,6 +1,7 @@
 # CLI Reference
 
-The CLI is a thin wrapper over the [library](02-library.md). Each command maps to one library capability; this page documents only the command-line surface: flags, defaults, and exit behavior.
+The CLI is a thin wrapper over the [library](02-library.md). Each command maps to one library capability; this page documents only the command-line surface: flags, defaults, and exit behavior. 
+`-h` and `--help` print the same help, on the tool and on every command.
 
 ## mybench init
 
@@ -106,6 +107,16 @@ mybench dashboard
 mybench dashboard --port 8080
 mybench dashboard --host 0.0.0.0
 ```
+
+## mybench manifest
+
+```bash
+# Print the tool's manifest as JSON
+mybench manifest
+```
+
+Prints the [manifest](02-library.md#manifest) on stdout. 
+Needs no benchmark, credentials, or prerequisites, so it doubles as a smoke test of the installation.
 
 ## Exit Codes
 

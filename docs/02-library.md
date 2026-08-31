@@ -8,6 +8,15 @@ Authentication is through the GitHub CLI. A token is generated from the signed-i
 Run and Try require credentials for the model under test, read from the environment and passed to the harness. 
 Deterministic capabilities run with no credentials configured.
 
+## Manifest
+
+Returns the tool's manifest, the frontmatter of the `SMART_TOOL.md` shipped inside the package, as structured data: name, version, description, use cases, supported platforms, and environment prerequisites. 
+This is the same file the `smart-tool.json` descriptor at the repository root points to, so a caller reads it through the library after installation instead of locating the file.
+
+```python
+def load_manifest() -> Manifest
+```
+
 ## Init
 
 Creates a new benchmark, a git repository that holds the tasks, results, and config file, or sets up an existing one. 

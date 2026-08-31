@@ -16,6 +16,33 @@ class MyBenchError(Exception):
     """Raised for any failure the library can name and explain how to fix."""
 
 
+# region: Manifest
+
+
+class ManifestRequirement(BaseModel):
+    """One environment prerequisite; `install` references documentation, never a command."""
+
+    name: str
+    purpose: str
+    install: str
+    optional: bool = False
+
+
+class Manifest(BaseModel):
+    """The machine-readable frontmatter of SMART_TOOL.md."""
+
+    smart_tool_format: int
+    name: str = Field(pattern=SLUG_PATTERN)
+    version: str = Field(pattern=SEMVER_PATTERN)
+    description: str
+    use_cases: list[str]
+    platforms: list[str]
+    requires: list[ManifestRequirement]
+
+
+# endregion
+
+
 # region: Task Definition
 
 

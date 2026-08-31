@@ -13,7 +13,11 @@ from mybench.core import sync
 from mybench.schemas import MyBenchError
 from mybench.settings import load_user_settings
 
-app = typer.Typer(no_args_is_help=True, pretty_exceptions_show_locals=False)
+app = typer.Typer(
+    no_args_is_help=True,
+    pretty_exceptions_show_locals=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
 
 
 @app.callback()
@@ -37,7 +41,7 @@ def init(
 def inspire_me(
     guidance: Annotated[str | None, typer.Option(help="Steer what the ideas are about")] = None,
 ) -> None:
-    """Propose ideas for new tasks."""
+    """Propose ideas for new tasks. Model-backed."""
     for idea in lib.inspire(guidance):
         typer.echo(f"- {idea}")
 
@@ -47,7 +51,7 @@ def create(
     idea: Annotated[str | None, typer.Option(help="What the task should be")] = None,
     context: Annotated[str | None, typer.Option(help="Material to build from: a file path, URL, or text")] = None,
 ) -> None:
-    """Create a new task in the benchmark from an idea, context material, or both."""
+    """Create a new task in the benchmark from an idea, context material, or both. Model-backed."""
     if idea is None and context is None:
         raise typer.BadParameter("Give --idea, --context, or both.")
     created = lib.create_task(idea, context)
@@ -66,7 +70,7 @@ def try_(
         Path | None, typer.Option(help="A previous try's directory; reruns the evaluations against its workspace")
     ] = None,
 ) -> None:
-    """Run one task against one model without touching the results."""
+    """Run one task against one model without touching the results. Model-backed."""
     result = lib.try_task(task, model, reevaluate)
     typer.echo(f"Try directory: {result.path}")
     typer.echo(f"Status: {result.run.status}")
@@ -82,7 +86,7 @@ def run(
     task: Annotated[list[str] | None, typer.Option(help="Only these task ids; repeat to give several")] = None,
     rerun: Annotated[bool, typer.Option(help="Execute the selection even where results already exist")] = False,
 ) -> None:
-    """Run the configured models against the tasks on disk, appending to the results."""
+    """Run the configured models against the tasks on disk, appending to the results. Model-backed."""
     skipped = 0
     failed = 0
     for outcome in run_module.run_pairs(model, task, rerun):
@@ -122,6 +126,12 @@ def dashboard(
     typer.echo(lib.serve_dashboard(port, host))
     with contextlib.suppress(KeyboardInterrupt):
         threading.Event().wait()
+
+
+@app.command()
+def manifest() -> None:
+    """Print the tool's manifest as JSON."""
+    typer.echo(lib.load_manifest().model_dump_json(indent=2))
 
 
 @app.command()

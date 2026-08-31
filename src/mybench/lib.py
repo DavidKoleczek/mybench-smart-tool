@@ -2,9 +2,14 @@
 
 from pathlib import Path
 
-from mybench.core import authoring, execute, init, results, run, sync
+from mybench.core import authoring, execute, init, manifest, results, run, sync
 from mybench.dashboard import server
-from mybench.schemas import CreatedTask, TaskResult
+from mybench.schemas import CreatedTask, Manifest, TaskResult
+
+
+def load_manifest() -> Manifest:
+    """The tool's manifest as structured data, read from the SMART_TOOL.md shipped inside the package."""
+    return manifest.load_manifest()
 
 
 def init_benchmark(target: str, path: Path | None = None) -> None:

@@ -1,0 +1,5 @@
+{
+  "manifest": "src/mybench/SMART_TOOL.md",
+  "cli_argv": ["mybench"],
+  "deterministic_smoke": ["manifest"]
+}
